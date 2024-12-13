@@ -1,15 +1,17 @@
 // saveData.js
-const { createConnection } = require("./db/mysql/connector")
-const saveDataToDb = async (processedData, service) => {
-  const connector = createConnection();
+const { createConnection } = require("./db/mysql/connector");
 
-  connector.then((connection) => {
-    processedData.items.forEach((item) => {
+const saveDataToDb = async (processedData, service) => {
+  try {
+    const connector = await createConnection();
+
+    const values = processedData.items.map(item => {
       const { title, link, pubDate, traffic, picture, newsItems } = item;
-      const interest = traffic;      
+      const interest = traffic;
       const source_timestamp = new Date(pubDate).toISOString().slice(0, 19).replace('T', ' ');
       const { service_id, language_code, language_name, country_code, country_name } = service;
-      const values = [
+      
+      return [
         service_id, 
         language_code, 
         language_name, 
@@ -19,27 +21,41 @@ const saveDataToDb = async (processedData, service) => {
         interest, 
         source_timestamp
       ];
+    });
 
-      const query = `
-        INSERT INTO
-          source_service_data
-            (service_id, language_code, language_name, country_code, country_name, title, interest, source_timestamp)
-        VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+    // Insert query
+    const query = `
+      INSERT INTO source_service_data 
+      (service_id, language_code, language_name, country_code, country_name, title, interest, source_timestamp)
+      VALUES ?
+    `;
 
-      connection.query(query, values, (err, ResultSetHeader) => {
+    // Toplu veri ekle
+    return new Promise((resolve, reject) => {
+      connector.query(query, [values], (err, result) => {
         if (err) {
-          console.error('Error saving data:', err);
+          reject({
+            success: false,
+            message: 'Error saving data',
+            error: err,
+          });
         } else {
-          const { insertId } = ResultSetHeader;
-          console.log(`Data saved`, insertId);
+          resolve({
+            success: true,
+            message: `Data saved. Inserted ${result.affectedRows} rows.`,
+            insertedId: result.insertId || null, // Eğer insertId döndüyse, onu da ekleyebiliriz
+          });
         }
       });
-
     });
-    connection.end();
-  });
+
+  } catch (err) {
+    return {
+      success: false,
+      message: 'Connection error',
+      error: err,
+    };
+  }
 };
 
 module.exports = saveDataToDb;
