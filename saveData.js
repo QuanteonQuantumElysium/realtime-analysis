@@ -30,7 +30,6 @@ const saveDataToDb = async (processedData, service) => {
       VALUES ?
     `;
 
-    // Toplu veri ekle
     return new Promise((resolve, reject) => {
       connector.query(query, [values], (err, result) => {
         if (err) {
@@ -43,7 +42,7 @@ const saveDataToDb = async (processedData, service) => {
           resolve({
             success: true,
             message: `Data saved. Inserted ${result.affectedRows} rows.`,
-            insertedId: result.insertId || null, // Eğer insertId döndüyse, onu da ekleyebiliriz
+            insertedId: result.insertId || null, 
           });
         }
       });
