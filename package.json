@@ -1,6 +1,12 @@
 {
   "name": "realtime-analysis",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js"
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "dotenvx run -f .env -- node --max-old-space-size=2048 index.js"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.28.0"
+  }
 }
