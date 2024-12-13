@@ -54,7 +54,7 @@ const saveDataToDb = async (processedData, service) => {
         } else {
           resolve({
             success: true,
-            message: `Data saved. Inserted ${result.affectedRows} rows.`,
+            message: `Inserted ${result.affectedRows} rows.`,
             insertedId: result.insertId || null,
           });
         }
