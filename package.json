@@ -7,6 +7,7 @@
     "start": "dotenvx run -f .env -- node --max-old-space-size=2048 index.js"
   },
   "dependencies": {
-    "@dotenvx/dotenvx": "^1.28.0"
+    "@dotenvx/dotenvx": "^1.29.0",
+    "mysql2": "^3.11.5"
   }
 }

@@ -32,7 +32,7 @@ CREATE TABLE `source_service` (
 )
 
 INSERT INTO
-    `mv_service_full_overview_with_url`
+    `source_service`
 VALUES (
         1,
         'API Service',
