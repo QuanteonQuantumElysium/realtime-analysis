@@ -1,8 +1,8 @@
 const { getSourceServiceData } = require("./db/mysql/connector");
-const fetchRSS = require("./fetchRss");
-const parseXML = require("./parseXML");
-const processFeed = require("./processFeed");
-const saveDataToDb = require("./saveData");
+const fetchRSS = require("./collector/fetchRss");
+const parseXML = require("./collector/parseXML");
+const processFeed = require("./collector/processFeed");
+const saveDataToDb = require("./collector/saveData");
 
 const main = async () => {
   try {

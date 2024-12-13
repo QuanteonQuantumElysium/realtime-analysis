@@ -1,5 +1,5 @@
 // saveData.js
-const { createConnection } = require("./db/mysql/connector");
+const { createConnection } = require("../db/mysql/connector");
 
 const saveDataToDb = async (processedData, service) => {
   let connector;
