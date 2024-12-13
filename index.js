@@ -1,22 +1,38 @@
-// 1. Connector dosyasını içe aktar
-const connection = require('./db/mysql/connector');
+const { getSourceServiceData } = require('./db/mysql/connector');
+const fetchRss = require('./fetchRss');
+const parseRssData = require('./processData');
+const saveDataToDb = require('./saveData');
 
-// 2. Test sorgusu
-const sqlQuery = 'SELECT * FROM source_service';
+const main = async () => {
+  try {
 
-connection.query(sqlQuery, (error, results, fields) => {
-  if (error) {
-    console.error('Sorgu hatası:', error);
-    return;
+    const services = await getSourceServiceData();
+
+    if (services.length === 0) {
+      console.log('no.');
+      return;
+    }
+
+    for (let service of services) {
+      console.log(`pulling: ${service.platform_name}`);
+
+
+      if (service.access_type_name === 'RSS') {
+
+        const rssData = await fetchRss(service.full_url);
+        if (rssData) {
+          const parsedData = await parseRssData(rssData);
+          await saveDataToDb(parsedData, service.service_id);
+        } else {
+          console.error(`RSS: ${service.full_url}`);
+        }
+      }
+
+      // service.fetch_frequency
+    }
+  } catch (error) {
+    console.error('main:', error);
   }
-  console.log('Sorgu Sonuçları:', results);
-});
+};
 
-// 3. Veritabanı bağlantısını kapatma
-connection.end((err) => {
-  if (err) {
-    console.error('Bağlantı kapatılırken hata oluştu:', err);
-    return;
-  }
-  console.log('Bağlantı başarıyla kapatıldı.');
-});
+main();
