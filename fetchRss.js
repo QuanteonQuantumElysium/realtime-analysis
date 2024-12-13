@@ -1,18 +1,16 @@
+// fetchRSS.js
+
 const axios = require('axios');
 
-const fetchRss = async (url) => {
+
+async function fetchRSS(url) {
   try {
     const response = await axios.get(url);
-    if (response.status === 200) {
-      return response.data;
-    } else {
-      console.log(`failure: ${response.status}`);
-      return null;
-    }
+    return response.data;  
   } catch (error) {
-    console.error('RSS failure:', error);
-    return null;
+    console.error('Error fetching RSS data:', error);
+    throw error;
   }
-};
+}
 
-module.exports = fetchRss;
+module.exports = fetchRSS;

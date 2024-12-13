@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS analysis_db;
 USE analysis_db;
 
 CREATE TABLE `source_service` (
-    `service_id` int NOT NULL DEFAULT '0' COMMENT 'Unique identifier for each service; serves as the primary key for the table',
+    `service_id` int AUTO_INCREMENT PRIMARY KEY COMMENT 'Unique identifier for each service; serves as the primary key for the table',
     `service_type_name` varchar(50) NOT NULL COMMENT 'Name of the type',
     `access_type_id` int NOT NULL COMMENT 'Reference to access_types table; specifies access method (1: api, 2: rss, 3: html )',
     `access_type_name` varchar(50) NOT NULL COMMENT 'Name of the type (API, RSS, HTML, Influx Database, Elasticsearch, MySql, Mongo Database, Postgresql Database, ... )',

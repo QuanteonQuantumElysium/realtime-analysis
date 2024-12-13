@@ -1,26 +1,45 @@
-const { createConnection, closeConnection } = require('./db/mysql/connector');
+// saveData.js
+const { createConnection } = require("./db/mysql/connector")
+const saveDataToDb = async (processedData, service) => {
+  const connector = createConnection();
 
-const saveDataToDb = async (parsedData, serviceId) => {
-  const connection = createConnection();
+  connector.then((connection) => {
+    processedData.items.forEach((item) => {
+      const { title, link, pubDate, traffic, picture, newsItems } = item;
+      const interest = traffic;      
+      const source_timestamp = new Date(pubDate).toISOString().slice(0, 19).replace('T', ' ');
+      const { service_id, language_code, language_name, country_code, country_name } = service;
+      const values = [
+        service_id, 
+        language_code, 
+        language_name, 
+        country_code, 
+        country_name, 
+        title, 
+        interest, 
+        source_timestamp
+      ];
 
-  if (connection) {
-    parsedData.forEach((data) => {
       const query = `
-        INSERT INTO source_service_data (service_id, title, link, description, published)
-        VALUES (?, ?, ?, ?, ?)`;
+        INSERT INTO
+          source_service_data
+            (service_id, language_code, language_name, country_code, country_name, title, interest, source_timestamp)
+        VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-      const publishedDate = new Date(data.pub_date);
-
-      connection.query(query, [serviceId, data.title, data.link, data.description, publishedDate], (err, results) => {
+      connection.query(query, values, (err, ResultSetHeader) => {
         if (err) {
-          console.error('parsedData:', err);
+          console.error('Error saving data:', err);
         } else {
-          console.log(`parsedData: ${data.title}`);
+          const { insertId } = ResultSetHeader;
+          console.log(`Data saved`, insertId);
         }
       });
+
     });
-    closeConnection(connection);
-  }
+    connection.end();
+  });
 };
 
 module.exports = saveDataToDb;
