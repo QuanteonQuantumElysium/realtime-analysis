@@ -33,7 +33,7 @@ ADD COLUMN timeout INT DEFAULT 30;
 
 update `source`
 set
-    fetch_frequency = 30,
+    fetch_frequency = 300,
     rate_limit = 1,
     timeout = 10;
 
