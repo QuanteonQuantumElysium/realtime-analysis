@@ -31,6 +31,12 @@ CREATE TABLE `source_service` (
     `full_url` text
 )
 
+CREATE TRIGGER update_next_fetch
+BEFORE INSERT ON source_service
+FOR EACH ROW
+SET NEW.next_fetch = DATE_ADD(NOW(), INTERVAL NEW.fetch_frequency SECOND);
+
+
 INSERT INTO
     `source_service`
 VALUES (
