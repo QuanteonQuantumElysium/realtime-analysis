@@ -1,8 +1,4 @@
-CREATE DATABASE IF NOT EXISTS analysis_db;
-
-USE analysis_db;
-
-CREATE TABLE `source_service` (
+CREATE TABLE `source` (
     `service_id` int AUTO_INCREMENT PRIMARY KEY COMMENT 'Unique identifier for each service; serves as the primary key for the table',
     `service_type_name` varchar(50) NOT NULL COMMENT 'Name of the type',
     `access_type_id` int NOT NULL COMMENT 'Reference to access_types table; specifies access method (1: api, 2: rss, 3: html )',
@@ -29,16 +25,30 @@ CREATE TABLE `source_service` (
     `platform_status_id` int DEFAULT NULL COMMENT '1: active, 2: inactive, 3: maintenance, 4: under_review, 5: suspended, ...; from status_types ',
     `platform_status` varchar(50) COMMENT 'Name of the status type',
     `full_url` text
-)
+);
 
-CREATE TRIGGER update_next_fetch
-BEFORE INSERT ON source_service
-FOR EACH ROW
-SET NEW.next_fetch = DATE_ADD(NOW(), INTERVAL NEW.fetch_frequency SECOND);
+ALTER TABLE source
+ADD COLUMN rate_limit INT DEFAULT 1,
+ADD COLUMN timeout INT DEFAULT 30;
 
+update `source`
+set
+    fetch_frequency = 30,
+    rate_limit = 1,
+    timeout = 10;
+
+CREATE TRIGGER update_next_fetch BEFORE
+INSERT
+    OR
+UPDATE ON source FOR EACH ROW
+SET
+    NEW.next_fetch = DATE_ADD(
+        NOW(),
+        INTERVAL NEW.fetch_frequency SECOND
+    );
 
 INSERT INTO
-    `source_service`
+    `source`
 VALUES (
         1,
         'API Service',

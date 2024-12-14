@@ -1,8 +1,4 @@
-CREATE DATABASE IF NOT EXISTS analysis_db;
-
-USE analysis_db;
-
-CREATE TABLE `source_service_data` (
+CREATE TABLE `source_data` (
     `id` int AUTO_INCREMENT PRIMARY KEY,
     `service_id` int NOT NULL COMMENT 'Unique identifier for each service; foreign key linking to the services table',
     `language_code` char(2) NOT NULL COMMENT 'ISO 639-1 two-letter language code (e.g., ''EN'', ''TR'', ''CN'')',
@@ -13,5 +9,5 @@ CREATE TABLE `source_service_data` (
     `interest` int COMMENT 'Interest level or score related to the service, if applicable',
     `source_timestamp` TIMESTAMP COMMENT 'Timestamp when the data was collected from the source; useful for tracking the data\'s origin time',
     `collection_timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp when the record is created; useful for tracking data collection times',
-    FOREIGN KEY (`service_id`) REFERENCES `source_service` (`service_id`) ON DELETE CASCADE
+    FOREIGN KEY (`service_id`) REFERENCES `source` (`service_id`) ON DELETE CASCADE
 );

@@ -63,7 +63,7 @@ const getSourceServiceData = async () => {
   try {
     const connection = await createConnection();
     return new Promise((resolve, reject) => {
-      const query = `SELECT * FROM source_service WHERE service_status_id = 1`;
+      const query = `SELECT * FROM source WHERE service_status_id = 1`;
       connection.query(query, (error, results) => {
         if (error) {
           collectorEmitter.emit("step", {
@@ -89,7 +89,6 @@ const getSourceServiceData = async () => {
       closeConnection(connection);
     });
   } catch (error) {
-    console.error("Error in getSourceServiceData:", error);
     collectorEmitter.emit("step", {
       timestamp: new Date().toISOString(),
       type: "error",
@@ -101,4 +100,8 @@ const getSourceServiceData = async () => {
   }
 };
 
-module.exports = { createConnection, closeConnection, getSourceServiceData };
+module.exports = {
+  createConnection,
+  closeConnection,
+  getSourceServiceData,
+};

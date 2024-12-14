@@ -37,7 +37,7 @@ const saveData = async (processedData, service) => {
 
     // Insert query
     const query = `
-      INSERT INTO source_service_data 
+      INSERT INTO source_data 
       (service_id, language_code, language_name, country_code, country_name, title, interest, source_timestamp)
       VALUES ?
     `;
@@ -102,7 +102,7 @@ const updateService = async (serviceId) => {
     connector = await createConnection();
 
     return new Promise((resolve, reject) => {
-      const query = `UPDATE source_service SET last_fetched = NOW() WHERE service_id = ?`;
+      const query = `UPDATE source SET last_fetched = NOW() WHERE service_id = ?`;
       connector.query(query, [serviceId], (error, result) => {
         if (error) {
           collectorEmitter.emit("step", {
