@@ -37,10 +37,19 @@ set
     rate_limit = 1,
     timeout = 10;
 
-CREATE TRIGGER update_next_fetch BEFORE
-INSERT
-    OR
-UPDATE ON source FOR EACH ROW
+CREATE TRIGGER update_next_fetch_before_insert
+BEFORE INSERT
+ON source
+FOR EACH ROW
+SET
+    NEW.next_fetch = DATE_ADD(
+        NOW(),
+        INTERVAL NEW.fetch_frequency SECOND
+    );
+CREATE TRIGGER update_next_fetch_before_update
+BEFORE UPDATE
+ON source
+FOR EACH ROW
 SET
     NEW.next_fetch = DATE_ADD(
         NOW(),
