@@ -1,9 +1,9 @@
-// saveData.js
+// saveDataToDb.js
 
 const { createConnection } = require("../db/mysql/connector");
 const collectorEmitter = require("./collectorEmitter");
 
-const saveDataToDb = async (processedData, service) => {
+const saveData = async (processedData, service) => {
   let connector;
   try {
     // open
@@ -51,7 +51,7 @@ const saveDataToDb = async (processedData, service) => {
           collectorEmitter.emit("step", {
             timestamp: new Date().toISOString(),
             type: "error",
-            step: "saveDataToDb",
+            step: "saveData",
             message: `Error saving data`,
             error,
           });
@@ -64,7 +64,7 @@ const saveDataToDb = async (processedData, service) => {
           collectorEmitter.emit("step", {
             timestamp: new Date().toISOString(),
             type: "info",
-            step: "saveDataToDb",
+            step: "saveData",
             message: `Data saved successfully, ${result.affectedRows} rows inserted`,
             data: result,
           });
@@ -80,7 +80,7 @@ const saveDataToDb = async (processedData, service) => {
     myEmitter.emit("step", {
       timestamp: new Date().toISOString(),
       type: "error",
-      step: "saveDataToDb",
+      step: "saveData",
       message: `Error saving data: ${error.message}`,
       error,
     });
@@ -97,4 +97,49 @@ const saveDataToDb = async (processedData, service) => {
   }
 };
 
-module.exports = saveDataToDb;
+const updateService = async (serviceId) => {
+  let connector;
+  try {
+    // open
+    connector = await createConnection();
+
+    return new Promise((resolve, reject) => {
+      const query = `UPDATE source_service SET last_fetched = NOW() WHERE service_id = ?`;
+      connector.query(query, [serviceId], (error, result) => {
+        if (error) {
+          collectorEmitter.emit("step", {
+            timestamp: new Date().toISOString(),
+            type: "error",
+            step: "updateService",
+            message: `Error update`,
+            error,
+          });
+          reject(error);
+        } else {
+          collectorEmitter.emit("step", {
+            timestamp: new Date().toISOString(),
+            type: "error",
+            step: "updateService",
+            message: `Data update successfully, ${result.affectedRows} rows inserted`,
+            data: result,
+          });
+          resolve(result);
+        }
+      });
+    });
+  } catch (error) {
+    collectorEmitter.emit("step", {
+      timestamp: new Date().toISOString(),
+      type: "error",
+      step: "updateService",
+      message: `Error update`,
+      error,
+    });
+  } finally {
+    // every time close connection
+    if (connector) {
+      connector.end();
+    }
+  }
+};
+module.exports = { updateService, saveData };

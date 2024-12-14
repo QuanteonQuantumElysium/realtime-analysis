@@ -1,10 +1,10 @@
 // index.js
 
 const { getSourceServiceData } = require("../db/mysql/connector");
+const { saveData, updateService } = require("./saveDataToDb");
 const fetchRSS = require("./fetchRss");
 const parseXML = require("./parseXML");
 const processFeed = require("./processFeed");
-const saveDataToDb = require("./saveData");
 const collectorEmitter = require("./collectorEmitter");
 
 const collector = async () => {
@@ -26,7 +26,12 @@ const collector = async () => {
         if (xmlData) {
           const jsonData = await parseXML(xmlData);
           const processedData = processFeed(jsonData);
-          const result = await saveDataToDb(processedData, service);
+          const result = await saveData(processedData, service);
+
+          if (result.success) {
+            await updateService(service.service_id);
+          }
+
           results.push({
             serviceUrl: service.full_url,
             result: result,
