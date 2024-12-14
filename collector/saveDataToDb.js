@@ -1,12 +1,10 @@
-// saveDataToDb.js
-
 const { createConnection } = require("../db/mysql/connector");
 const collectorEmitter = require("./collectorEmitter");
 
 const saveData = async (processedData, service) => {
   let connector;
   try {
-    // open
+    // open connection
     connector = await createConnection();
 
     // collect all data
@@ -44,7 +42,7 @@ const saveData = async (processedData, service) => {
       VALUES ?
     `;
 
-    // batch
+    // batch insert
     return new Promise((resolve, reject) => {
       connector.query(query, [values], (error, result) => {
         if (error) {
@@ -63,7 +61,7 @@ const saveData = async (processedData, service) => {
         } else {
           collectorEmitter.emit("step", {
             timestamp: new Date().toISOString(),
-            type: "info",
+            type: "info", // changed to info for successful insert
             step: "saveData",
             message: `Data saved successfully, ${result.affectedRows} rows inserted`,
             data: result,
@@ -77,7 +75,7 @@ const saveData = async (processedData, service) => {
       });
     });
   } catch (error) {
-    myEmitter.emit("step", {
+    collectorEmitter.emit("step", {
       timestamp: new Date().toISOString(),
       type: "error",
       step: "saveData",
@@ -90,7 +88,7 @@ const saveData = async (processedData, service) => {
       error,
     };
   } finally {
-    // every time close connection
+    // close connection
     if (connector) {
       connector.end();
     }
@@ -100,7 +98,7 @@ const saveData = async (processedData, service) => {
 const updateService = async (serviceId) => {
   let connector;
   try {
-    // open
+    // open connection
     connector = await createConnection();
 
     return new Promise((resolve, reject) => {
@@ -111,16 +109,16 @@ const updateService = async (serviceId) => {
             timestamp: new Date().toISOString(),
             type: "error",
             step: "updateService",
-            message: `Error update`,
+            message: `Error updating last_fetched`,
             error,
           });
           reject(error);
         } else {
           collectorEmitter.emit("step", {
             timestamp: new Date().toISOString(),
-            type: "error",
+            type: "info", // changed to info for successful update
             step: "updateService",
-            message: `Data update successfully, ${result.affectedRows} rows inserted`,
+            message: `Service last_fetched updated successfully, ${result.affectedRows} rows affected`,
             data: result,
           });
           resolve(result);
@@ -132,14 +130,15 @@ const updateService = async (serviceId) => {
       timestamp: new Date().toISOString(),
       type: "error",
       step: "updateService",
-      message: `Error update`,
+      message: `Error updating service: ${error.message}`,
       error,
     });
   } finally {
-    // every time close connection
+    // close connection
     if (connector) {
       connector.end();
     }
   }
 };
+
 module.exports = { updateService, saveData };
