@@ -1,5 +1,7 @@
 // saveData.js
+
 const { createConnection } = require("../db/mysql/connector");
+const collectorEmitter = require("./collectorEmitter");
 
 const saveDataToDb = async (processedData, service) => {
   let connector;
@@ -44,14 +46,28 @@ const saveDataToDb = async (processedData, service) => {
 
     // batch
     return new Promise((resolve, reject) => {
-      connector.query(query, [values], (err, result) => {
-        if (err) {
+      connector.query(query, [values], (error, result) => {
+        if (error) {
+          collectorEmitter.emit("step", {
+            timestamp: new Date().toISOString(),
+            type: "error",
+            step: "saveDataToDb",
+            message: `Error saving data`,
+            error,
+          });
           reject({
             success: false,
             message: "Error saving data",
-            error: err,
+            error,
           });
         } else {
+          collectorEmitter.emit("step", {
+            timestamp: new Date().toISOString(),
+            type: "info",
+            step: "saveDataToDb",
+            message: `Data saved successfully, ${result.affectedRows} rows inserted`,
+            data: result,
+          });
           resolve({
             success: true,
             message: `Inserted ${result.affectedRows} rows.`,
@@ -60,11 +76,18 @@ const saveDataToDb = async (processedData, service) => {
         }
       });
     });
-  } catch (err) {
+  } catch (error) {
+    myEmitter.emit("step", {
+      timestamp: new Date().toISOString(),
+      type: "error",
+      step: "saveDataToDb",
+      message: `Error saving data: ${error.message}`,
+      error,
+    });
     return {
       success: false,
       message: "Connection error",
-      error: err,
+      error,
     };
   } finally {
     // every time close connection

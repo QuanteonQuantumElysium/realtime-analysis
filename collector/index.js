@@ -1,18 +1,25 @@
+// index.js
+
 const { getSourceServiceData } = require("../db/mysql/connector");
 const fetchRSS = require("./fetchRss");
 const parseXML = require("./parseXML");
 const processFeed = require("./processFeed");
 const saveDataToDb = require("./saveData");
+const collectorEmitter = require("./collectorEmitter");
 
 const collector = async () => {
   try {
     const services = await getSourceServiceData();
 
     if (services.length === 0) {
-      console.log("No services available.");
+      collectorEmitter.emit("step", {
+        timestamp: new Date().toISOString(),
+        step: "collector",
+        message: "No services available",
+      });
       return;
     }
-
+    const results = [];
     for (let service of services) {
       if (service.access_type_id === 2 || service.data_format_code === "xml") {
         const xmlData = await fetchRSS(service.full_url);
@@ -20,15 +27,37 @@ const collector = async () => {
           const jsonData = await parseXML(xmlData);
           const processedData = processFeed(jsonData);
           const result = await saveDataToDb(processedData, service);
-          console.log(`${service.full_url}`, result);
+          results.push({
+            serviceUrl: service.full_url,
+            result: result,
+          });
         } else {
-          console.error(`Failed to fetch RSS data from ${service.full_url}`);
+          results.push({
+            serviceUrl: service.full_url,
+            result: { success: false, message: "Failed to fetch RSS data" },
+          });
         }
       }
     }
+
+    collectorEmitter.emit("step", {
+      timestamp: new Date().toISOString(),
+      type: "info",
+      step: "collector",
+      message: "All services processed",
+      data: results,
+    });
+    return { success: true, results };
   } catch (error) {
-    console.error("Main error:", error);
+    collectorEmitter.emit("step", {
+      timestamp: new Date().toISOString(),
+      type: "error",
+      step: "collector",
+      message: `Error in collector`,
+      error,
+    });
+    return { success: false, message: error.message };
   }
 };
 
-module.exports = collector
+module.exports = { collector, collectorEmitter };

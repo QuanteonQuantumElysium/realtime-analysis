@@ -1,6 +1,8 @@
-const mysql = require("mysql2");
+// connector.js
 
-// Create connection using Promises to handle async behavior
+const mysql = require("mysql2");
+const collectorEmitter = require("../../collector/collectorEmitter");
+
 const createConnection = () => {
   return new Promise((resolve, reject) => {
     const connection = mysql.createConnection({
@@ -10,11 +12,23 @@ const createConnection = () => {
       database: process.env.MYSQL_DATABASE,
     });
 
-    connection.connect((err) => {
-      if (err) {
-        console.error("Database connection failed:", err);
-        reject(err); // Reject promise if connection fails
+    connection.connect((error) => {
+      if (error) {
+        collectorEmitter.emit("step", {
+          timestamp: new Date().toISOString(),
+          type: "error",
+          step: "createConnection",
+          message: "Database connection failed",
+          error,
+        });
+        reject(error); // Reject promise if connection fails
       } else {
+        collectorEmitter.emit("step", {
+          timestamp: new Date().toISOString(),
+          type: "info",
+          step: "createConnection",
+          message: "Database connection successful",
+        });
         resolve(connection); // Resolve with the connection if successful
       }
     });
@@ -24,11 +38,22 @@ const createConnection = () => {
 // Close connection properly
 const closeConnection = (connection) => {
   if (connection) {
-    connection.end((err) => {
-      if (err) {
-        console.error("Error closing the connection:", err);
+    connection.end((error) => {
+      if (error) {
+        collectorEmitter.emit("step", {
+          timestamp: new Date().toISOString(),
+          type: "error",
+          step: "closeConnection",
+          message: "Error closing the connection",
+          error,
+        });
       } else {
-        console.log("Database connection closed");
+        collectorEmitter.emit("step", {
+          timestamp: new Date().toISOString(),
+          type: "info",
+          step: "closeConnection",
+          message: "Database connection closed",
+        });
       }
     });
   }
@@ -39,11 +64,24 @@ const getSourceServiceData = async () => {
     const connection = await createConnection();
     return new Promise((resolve, reject) => {
       const query = `SELECT * FROM source_service WHERE service_status_id = 1`;
-      connection.query(query, (err, results) => {
-        if (err) {
-          console.error("Error fetching data:", err);
+      connection.query(query, (error, results) => {
+        if (error) {
+          collectorEmitter.emit("step", {
+            timestamp: new Date().toISOString(),
+            type: "error",
+            step: "getSourceServiceData",
+            message: "Error select data",
+            error,
+          });
           reject(err);
         } else {
+          collectorEmitter.emit("step", {
+            timestamp: new Date().toISOString(),
+            type: "info",
+            step: "getSourceServiceData",
+            message: "Data selected",
+            data: results,
+          });
           resolve(results);
         }
       });
@@ -52,6 +90,13 @@ const getSourceServiceData = async () => {
     });
   } catch (error) {
     console.error("Error in getSourceServiceData:", error);
+    collectorEmitter.emit("step", {
+      timestamp: new Date().toISOString(),
+      type: "error",
+      step: "getSourceServiceData",
+      message: "Error",
+      error,
+    });
     throw error;
   }
 };
