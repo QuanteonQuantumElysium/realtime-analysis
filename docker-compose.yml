@@ -32,6 +32,8 @@ services:
       - mysql
     ports:
       - "60000:60000"
+    networks:
+      - network_shared      
     command: npm start
 
 networks:
